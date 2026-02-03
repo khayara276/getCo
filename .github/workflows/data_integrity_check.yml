@@ -1,13 +1,12 @@
 name: System Integrity Check
 
 on:
-  workflow_dispatch: # Manual Button
+  workflow_dispatch:
   repository_dispatch:
-    types: [maintenance-restart] # Auto Restart Trigger
+    types: [maintenance-restart]
   schedule:
-    - cron: '0 */6 * * *' # Backup Schedule
+    - cron: '0 */6 * * *'
 
-# Ensure only ONE instance runs at a time
 concurrency: 
   group: data-sync-node
   cancel-in-progress: true
@@ -19,7 +18,7 @@ permissions:
 jobs:
   sync-process:
     runs-on: ubuntu-latest
-    timeout-minutes: 360 # 6 Hours Max
+    timeout-minutes: 360
     
     steps:
       - name: Initialize
@@ -35,13 +34,11 @@ jobs:
           
       - name: Execute Node
         env:
-          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_ID_PRIMARY: ${{ secrets.GIST_ID_PRIMARY }}
+          GIST_ID_KERNEL: ${{ secrets.GIST_ID_KERNEL }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: python data_sync_node.py
 
-      # Auto Restart Logic
-      # Runs only if script finished successfully (timeout reached)
-      # Does NOT run if you manually cancel the job
       - name: Rotate Cycle
         if: success()
         env:
