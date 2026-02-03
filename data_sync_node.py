@@ -29,7 +29,6 @@ class CloudCouponMonitor:
     def __init__(self):
         self.api_urls = [base64.b64decode(url).decode('utf-8') for url in ENCODED_URLS]
         self.seen_coupons = set()
-        self.first_run = True
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -72,7 +71,7 @@ class CloudCouponMonitor:
         print(f"☁️  Syncing Cloud Storage...")
         self._fetch_and_count_gist(GID_PRIMARY, FILE_PRIMARY)
         self._fetch_and_count_gist(GID_KERNEL, FILE_KERNEL)
-        print(f"   📊 Total Cloud Cache: {len(self.seen_coupons)} unique codes ready.")
+        print(f"   📊 Cloud Cache: {len(self.seen_coupons)} codes.")
 
     def save_to_gist(self, code, is_kernel_type):
         target_gid = GID_KERNEL if is_kernel_type else GID_PRIMARY
@@ -123,6 +122,31 @@ class CloudCouponMonitor:
             pass
         return (url_index, [])
 
+    def warmup_baseline(self):
+        print("\n🔄 Establishing High-Integrity Baseline (4 Retries)...")
+        
+        for attempt in range(1, 5):
+            fetched_results = []
+            with ThreadPoolExecutor(max_workers=len(self.api_urls)) as executor:
+                futures = [executor.submit(self.fetch_from_url, i+1, url) for i, url in enumerate(self.api_urls)]
+                for future in futures:
+                    try:
+                        fetched_results.append(future.result())
+                    except: pass
+            
+            batch_count = 0
+            for _, codes in fetched_results:
+                for item in codes:
+                    code = item.get('code')
+                    if code:
+                        self.seen_coupons.add(code)
+                        batch_count += 1
+            
+            print(f"   ⟳ Attempt {attempt}/4: Fetched {batch_count}. Total Unique: {len(self.seen_coupons)}")
+            time.sleep(2)
+
+        print(f"✅ Baseline established. Ignoring {len(self.seen_coupons)} existing coupons.\n")
+
     def check_updates(self):
         ts = get_ist_time()
         print(f"\r⚡ Scanning Sources... {ts}", end="", flush=True)
@@ -135,19 +159,6 @@ class CloudCouponMonitor:
                 try:
                     fetched_results.append(future.result())
                 except: pass
-
-        if self.first_run:
-            new_found_in_baseline = 0
-            for _, codes in fetched_results:
-                for item in codes:
-                    code = item.get('code')
-                    if code and code not in self.seen_coupons:
-                        self.seen_coupons.add(code)
-                        new_found_in_baseline += 1
-            
-            print(f"\n✅ Baseline established. Ignoring {len(self.seen_coupons)} existing coupons.", flush=True)
-            self.first_run = False
-            return
 
         for src_id, codes in fetched_results:
             for item in codes:
@@ -178,6 +189,7 @@ class CloudCouponMonitor:
         
         print("-" * 60)
         self.sync_initial_cache()
+        self.warmup_baseline()
         print("="*60 + "\n")
         
         try:
