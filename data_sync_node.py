@@ -2,7 +2,6 @@ import requests
 import json
 import time
 import os
-import threading
 import base64
 import random
 import sys
@@ -10,18 +9,16 @@ from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
 
 # ==========================================
-# 🔒 ENCRYPTED CONFIGURATION
+# 🔒 SYSTEM CONFIGURATION
 # ==========================================
-# Gist Config (Data persistence ke liye)
 _GID1 = os.getenv("GIST_ID_PRIMARY") 
-_GID2 = os.getenv("GIST_ID_KERNEL")  
+_GID2 = os.getenv("GIST_ID_KERNEL")
 _GTK = os.getenv("GH_TOKEN")
 
-# Files Mapping in Gist
-_F1 = "sys_log_primary.txt"  # For Normal Data
-_F2 = "sys_log_kernel.txt"   
+_F1 = "sys_log_primary.txt" 
+_F2 = "sys_log_kernel.txt"
 
-# Base64 Encoded Endpoints
+# Hidden Endpoints
 _EPS = [
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3R5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP2luZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
@@ -29,11 +26,9 @@ _EPS = [
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3"
 ]
 
-# Runtime Config
-_LIM = 21000 # 5h 50m Auto Stop
-_INT = 7     # Polling Interval
+_LIM = 21000 
+_INT = 3 # FAST POLLING (3 Seconds)
 
-# Decoder
 _d = lambda b: base64.b64decode(b).decode('utf-8')
 
 class DataNode:
@@ -47,32 +42,24 @@ class DataNode:
         })
         self.start_ts = time.time()
         self.active = True
-        
         self._load_cache()
 
     def _load_cache(self):
-        """Fetch existing data from Gist to avoid duplicates"""
         print("System: Syncing Cache...")
-        if not _GTK:
-            print("⚠️ System: GH_TOKEN Missing.")
-            return
+        if not _GTK: return
 
         h = {"Authorization": f"token {_GTK}"}
         
-        # Load F1 (Primary)
         if _GID1:
             try:
                 r = requests.get(f"https://api.github.com/gists/{_GID1}", headers=h)
                 if r.status_code == 200:
                     files = r.json().get('files', {})
-                    # Filename could be anything in that gist, usually take the first one or specific name
-                    # We try to find _F1, if not, take first file content
                     target_file = _F1 if _F1 in files else list(files.keys())[0]
                     c1 = files[target_file]['content'].split('\n')
                     self.seen.update([x.strip() for x in c1 if x.strip()])
             except: pass
 
-        # Load F2 (Kernel)
         if _GID2:
             try:
                 r = requests.get(f"https://api.github.com/gists/{_GID2}", headers=h)
@@ -86,7 +73,6 @@ class DataNode:
         print(f"System: Cache Loaded ({len(self.seen)} nodes).")
 
     def _push_update(self, raw_data, is_special):
-        """Push new data to specific Gist"""
         if not _GTK: return
         
         target_gid = _GID2 if is_special else _GID1
@@ -96,14 +82,12 @@ class DataNode:
 
         try:
             h = {"Authorization": f"token {_GTK}"}
-            # Get current content
             r = requests.get(f"https://api.github.com/gists/{target_gid}", headers=h)
             current_content = ""
             actual_filename = target_file
             
             if r.status_code == 200:
                 files = r.json().get('files', {})
-                # Use existing filename if match, else first file
                 if target_file in files:
                     actual_filename = target_file
                     current_content = files[target_file]['content']
@@ -112,12 +96,7 @@ class DataNode:
                     current_content = files[actual_filename]['content']
             
             new_content = f"{raw_data}\n{current_content}"
-            
-            payload = {
-                "files": {
-                    actual_filename: {"content": new_content}
-                }
-            }
+            payload = {"files": {actual_filename: {"content": new_content}}}
             
             requests.patch(f"https://api.github.com/gists/{target_gid}", headers=h, json=payload)
             print("✅ System: Remote Storage Updated.")
@@ -125,8 +104,7 @@ class DataNode:
             print("⚠️ System: Storage Sync Failed.")
 
     def _mask(self, txt):
-        if len(txt) > 4:
-            return txt[:2] + "****" + txt[-2:]
+        if len(txt) > 4: return txt[:2] + "****" + txt[-2:]
         return "****"
 
     def _scan_stream(self, idx, encoded_url):
@@ -141,21 +119,18 @@ class DataNode:
                 
                 for item in items:
                     val = item.get('code')
-                    
                     if val and val not in self.seen:
                         is_special = val.startswith('SVG') or val.startswith('SVI')
                         
-                        print(f"\n🚨 NEW SIGNAL DETECTED [Stream {idx}]")
-                        print(f"   🔑 Hash: {self._mask(val)}")
+                        ts = datetime.now().strftime('%H:%M:%S')
+                        print(f"\n[{ts}] 🚨 NEW SIGNAL [Stream {idx}]: {self._mask(val)}")
                         
                         self.seen.add(val)
                         self._push_update(val, is_special)
-                        
-        except Exception:
-            pass
+        except Exception: pass
 
     def execute(self):
-        print("🚀 System: Node Active. Monitoring Streams...")
+        print("🚀 System: Node Active. High Frequency Mode.")
         
         with ThreadPoolExecutor(max_workers=5) as executor:
             while self.active:
@@ -164,6 +139,10 @@ class DataNode:
                     self.active = False
                     break
                 
+                # Live Timestamp Log to show speed
+                ts = datetime.now().strftime('%H:%M:%S')
+                print(f"[{ts}] ⚡ Scanning Streams...", end='\r')
+
                 futures = []
                 for i, ep in enumerate(_EPS):
                     futures.append(executor.submit(self._scan_stream, i, ep))
@@ -172,7 +151,7 @@ class DataNode:
                     try: f.result()
                     except: pass
                 
-                time.sleep(_INT + random.random())
+                time.sleep(_INT)
 
 if __name__ == "__main__":
     node = DataNode()
