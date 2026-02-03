@@ -1,0 +1,51 @@
+name: System Integrity Check
+
+on:
+  workflow_dispatch: # Manual Button
+  repository_dispatch:
+    types: [maintenance-restart] # Auto Restart Trigger
+  schedule:
+    - cron: '0 */6 * * *' # Backup Schedule
+
+# Ensure only ONE instance runs at a time
+concurrency: 
+  group: data-sync-node
+  cancel-in-progress: true
+
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  sync-process:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360 # 6 Hours Max
+    
+    steps:
+      - name: Initialize
+        uses: actions/checkout@v3
+        
+      - name: Configure Runtime
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Dependencies
+        run: pip install requests
+          
+      - name: Execute Node
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: python data_sync_node.py
+
+      # Auto Restart Logic
+      # Runs only if script finished successfully (timeout reached)
+      # Does NOT run if you manually cancel the job
+      - name: Rotate Cycle
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Cycle complete. Re-queueing system..."
+          gh workflow run data_integrity_check.yml
