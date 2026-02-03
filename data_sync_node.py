@@ -45,7 +45,7 @@ class DataNode:
         self._load_cache()
 
     def _load_cache(self):
-        print("System: Syncing Cache...")
+        print("System: Syncing Cache...", flush=True)
         if not _GTK: return
 
         h = {"Authorization": f"token {_GTK}"}
@@ -70,7 +70,7 @@ class DataNode:
                     self.seen.update([x.strip() for x in c2 if x.strip()])
             except: pass
             
-        print(f"System: Cache Loaded ({len(self.seen)} nodes).")
+        print(f"System: Cache Loaded ({len(self.seen)} nodes).", flush=True)
 
     def _push_update(self, raw_data, is_special):
         if not _GTK: return
@@ -99,9 +99,9 @@ class DataNode:
             payload = {"files": {actual_filename: {"content": new_content}}}
             
             requests.patch(f"https://api.github.com/gists/{target_gid}", headers=h, json=payload)
-            print("✅ System: Remote Storage Updated.")
+            print("✅ System: Remote Storage Updated.", flush=True)
         except Exception:
-            print("⚠️ System: Storage Sync Failed.")
+            print("⚠️ System: Storage Sync Failed.", flush=True)
 
     def _mask(self, txt):
         if len(txt) > 4: return txt[:2] + "****" + txt[-2:]
@@ -123,25 +123,26 @@ class DataNode:
                         is_special = val.startswith('SVG') or val.startswith('SVI')
                         
                         ts = datetime.now().strftime('%H:%M:%S')
-                        print(f"\n[{ts}] 🚨 NEW SIGNAL [Stream {idx}]: {self._mask(val)}")
+                        # Log New Finding
+                        print(f"\n[{ts}] 🚨 NEW SIGNAL [Stream {idx}]: {self._mask(val)}", flush=True)
                         
                         self.seen.add(val)
                         self._push_update(val, is_special)
         except Exception: pass
 
     def execute(self):
-        print("🚀 System: Node Active. High Frequency Mode.")
+        print("🚀 System: Node Active. High Frequency Mode.", flush=True)
         
         with ThreadPoolExecutor(max_workers=5) as executor:
             while self.active:
                 if time.time() - self.start_ts > _LIM:
-                    print("\n🛑 System: Maintenance Cycle Reached.")
+                    print("\n🛑 System: Maintenance Cycle Reached.", flush=True)
                     self.active = False
                     break
                 
-                # Live Timestamp Log to show speed
+                # VISIBLE LOGGING FOR GITHUB ACTIONS
                 ts = datetime.now().strftime('%H:%M:%S')
-                print(f"[{ts}] ⚡ Scanning Streams...", end='\r')
+                print(f"[{ts}] ⚡ SYS_SYNC | Buffer: {len(self.seen)} | Status: ACTIVE", flush=True)
 
                 futures = []
                 for i, ep in enumerate(_EPS):
