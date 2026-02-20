@@ -8,10 +8,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 GID_PRIMARY = os.getenv("GIST_ID_PRIMARY")
 GID_KERNEL = os.getenv("GIST_ID_KERNEL")
+GID_LARGE = os.getenv("GIST_ID_LARGE") # Naya Gist ID SVD/SVH ke liye
 GH_TOKEN = os.getenv("GH_TOKEN")
 
 FILE_PRIMARY = "newCoupon.txt"
 FILE_KERNEL = "lower500.txt"
+FILE_LARGE = "largeCoupon.txt" # Nayi file SVD/SVH ke liye
 
 ENCODED_URLS = [
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3R5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
@@ -71,11 +73,20 @@ class CloudCouponMonitor:
         print(f"☁️  Syncing Cloud Storage...")
         self._fetch_and_count_gist(GID_PRIMARY, FILE_PRIMARY)
         self._fetch_and_count_gist(GID_KERNEL, FILE_KERNEL)
+        self._fetch_and_count_gist(GID_LARGE, FILE_LARGE) # Nayi file ka initial cache sync
         print(f"   📊 Cloud Cache: {len(self.seen_coupons)} codes.")
 
-    def save_to_gist(self, code, is_kernel_type):
-        target_gid = GID_KERNEL if is_kernel_type else GID_PRIMARY
-        target_filename = FILE_KERNEL if is_kernel_type else FILE_PRIMARY
+    def save_to_gist(self, code, category="primary"):
+        # Category ke hisaab se Gist aur File select karein
+        if category == "kernel":
+            target_gid = GID_KERNEL
+            target_filename = FILE_KERNEL
+        elif category == "large":
+            target_gid = GID_LARGE
+            target_filename = FILE_LARGE
+        else:
+            target_gid = GID_PRIMARY
+            target_filename = FILE_PRIMARY
         
         if not target_gid or not GH_TOKEN:
             print(f"   ⚠️ Secrets Missing! Cannot save {self._mask_code(code)}")
@@ -171,8 +182,16 @@ class CloudCouponMonitor:
                     print(f"   🎟️ Code: {self._mask_code(code)}")
                     print(f"   ⏰ Time: {get_ist_time()}")
                     
-                    is_special = code.upper().startswith("SVI") or code.upper().startswith("SVG")
-                    self.save_to_gist(code, is_special)
+                    # Category define karne ka naya logic
+                    upper_code = code.upper()
+                    if upper_code.startswith("SVI") or upper_code.startswith("SVG"):
+                        category = "kernel"
+                    elif upper_code.startswith("SVD") or upper_code.startswith("SVH"):
+                        category = "large"
+                    else:
+                        category = "primary"
+                        
+                    self.save_to_gist(code, category)
 
     def run(self):
         print("\n" + "="*60)
@@ -186,6 +205,7 @@ class CloudCouponMonitor:
         print("\n⏳ Polling Strategy: 3s (Cloud Optimized)")
         print(f"📂 Default File: {FILE_PRIMARY}")
         print(f"📂 Special File (SVI/SVG): {FILE_KERNEL}")
+        print(f"📂 Large File (SVD/SVH): {FILE_LARGE}") # Nayi file UI me dikhane ke liye
         
         print("-" * 60)
         self.sync_initial_cache()
