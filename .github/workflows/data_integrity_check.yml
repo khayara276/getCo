@@ -36,6 +36,7 @@ jobs:
         env:
           GIST_ID_PRIMARY: ${{ secrets.GIST_ID_PRIMARY }}
           GIST_ID_KERNEL: ${{ secrets.GIST_ID_KERNEL }}
+          GIST_ID_LARGE: ${{ secrets.GIST_ID_LARGE }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: python data_sync_node.py
 
