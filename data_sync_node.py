@@ -6,7 +6,7 @@ import base64
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
 
-GID_PRIMARY = os.getenv("GIST_ID_PRIMARY")
+GID_PRIMARY = os.getenv("GIST_ID_LARGE")
 GID_KERNEL = os.getenv("GIST_ID_KERNEL")
 GID_LARGE = os.getenv("GIST_ID_LARGE") # Naya Gist ID SVD/SVH ke liye
 GH_TOKEN = os.getenv("GH_TOKEN")
