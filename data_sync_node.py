@@ -3,9 +3,15 @@ import json
 import time
 import os
 import base64
+import threading
 from datetime import datetime, timedelta, timezone
 from concurrent.futures import ThreadPoolExecutor
 
+# --- Telegram Credentials ---
+BOT_TOKEN = "8587533216:AAHpeDKXShRhpdfIqCDuYNwdJyuiDAYsu5U"
+CHAT_ID = "814178967"
+
+# --- Gist Credentials ---
 GID_PRIMARY = os.getenv("GIST_ID_LARGE")
 GID_KERNEL = os.getenv("GIST_ID_KERNEL")
 GID_LARGE = os.getenv("GIST_ID_LARGE") # Naya Gist ID SVD/SVH ke liye
@@ -39,6 +45,23 @@ class CloudCouponMonitor:
             'Pragma': 'no-cache',
             'Expires': '0'
         })
+
+    def send_telegram_message(self, text):
+        """Telegram par message bhejne ka function (bina delay ke liye background thread me run hoga)"""
+        def _send():
+            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+            payload = {
+                "chat_id": CHAT_ID,
+                "text": text,
+                "parse_mode": "HTML"
+            }
+            try:
+                requests.post(url, json=payload, timeout=5)
+            except Exception as e:
+                print(f"\n   ❌ Telegram Error: {e}")
+        
+        # Threading use kar rahe hain taki main loop pause na ho aur message instantly chala jaye
+        threading.Thread(target=_send, daemon=True).start()
 
     def _mask_code(self, code):
         if not code or len(code) < 8: return "****"
@@ -191,12 +214,20 @@ class CloudCouponMonitor:
                     else:
                         category = "primary"
                         
+                    # 1. Telegram par instantly bhej do (thread ke through, bina ruke)
+                    tg_msg = f"🚨 🔥 <b>NEW COUPON DETECTED!</b>\n\n🎟️ <b>Code:</b> <code>{code}</code>\n📂 <b>Category:</b> {category}\n⏰ <b>Time:</b> {get_ist_time()}"
+                    self.send_telegram_message(tg_msg)
+                    
+                    # 2. Gist me save karo
                     self.save_to_gist(code, category)
 
     def run(self):
         print("\n" + "="*60)
         print("🚀 EXTREME SPEED COUPON SNIPER (SESSION + THREADS)")
         print("="*60)
+        
+        # --- SEND HELLO MESSAGE TO TELEGRAM ON START ---
+        self.send_telegram_message("🤖 <b>Coupon Monitor Bot Started!</b>\nListening for new coupons securely...")
         
         print(f"📡 Initializing Monitors...")
         for i in range(1, len(self.api_urls) + 1):
@@ -219,6 +250,7 @@ class CloudCouponMonitor:
             while True:
                 if time.time() - start_time > TIMEOUT:
                     print("\n🛑 Maintenance Restart Triggered.")
+                    self.send_telegram_message("🔄 <b>Bot Restarting:</b> Maintenance Restart Triggered (Timeout).")
                     break
                     
                 self.check_updates()
@@ -226,6 +258,7 @@ class CloudCouponMonitor:
                 
         except KeyboardInterrupt:
             print("\n👋 Monitor Stopped.")
+            self.send_telegram_message("🛑 <b>Bot Stopped:</b> Monitor was manually stopped.")
 
 if __name__ == "__main__":
     monitor = CloudCouponMonitor()
