@@ -26,6 +26,14 @@ ENCODED_URLS = [
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP2luZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP2xvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3"
+      "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647&type=log&indexName=interest_centers&logName=info&_=${Date.now()}&nocache=1",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647&_=$%7BDate.now()%7D&nocache=1",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?type=log&indexName=interest_centers&logName=info?&webID=25647&_=${Date.now()}",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647&_=${Date.now()}",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?type=log&indexName=interest_centers&logName=info?&webID=25647",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?&webID=25647",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?type=log&indexName=interest_centers&logName=info&webID=25647",
+        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647",
 ]
 
 def get_ist_time():
