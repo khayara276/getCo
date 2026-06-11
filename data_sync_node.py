@@ -10,6 +10,7 @@ from concurrent.futures import ThreadPoolExecutor
 # --- Telegram Credentials ---
 BOT_TOKEN = "8587533216:AAHpeDKXShRhpdfIqCDuYNwdJyuiDAYsu5U"
 CHAT_ID = "814178967"
+CHANNEL_USERNAME = "@codess_sh"
 
 # --- Gist Credentials ---
 GID_PRIMARY = os.getenv("GIST_ID_LARGE")
@@ -25,15 +26,15 @@ ENCODED_URLS = [
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3R5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP2luZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
     "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP2xvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
-    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3"
-      "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647&type=log&indexName=interest_centers&logName=info&_=${Date.now()}&nocache=1",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647&_=$%7BDate.now()%7D&nocache=1",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?type=log&indexName=interest_centers&logName=info?&webID=25647&_=${Date.now()}",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647&_=${Date.now()}",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?type=log&indexName=interest_centers&logName=info?&webID=25647",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?&webID=25647",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?type=log&indexName=interest_centers&logName=info&webID=25647",
-        "https://search-new.bitbns.com/autocoupon-apis/getSideBarCoupons?webID=25647",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3JnR5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZfPSR7RGF0ZS5ub3coKX0mbm9jYWNoZT0x",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3Jl89JCU3QkRhdGUubm93KCklN0Qmbm9jYWNoZT0x",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3R5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbz8md2ViSUQ9MjU2NDcmXz0ke0RhdGUubm93KCl9",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3Jl89JHtEYXRlLm5vdygpfQ==",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3R5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbz8md2ViSUQ9MjU2NDc=",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zPyZ3ZWJJRD0yNTY0Nw==",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3R5cGU9bG9nJmluZGV4TmFtZT1pbnRlcmVzdF9jZW50ZXJzJmxvZ05hbWU9aW5mbyZ3ZWJJRD0yNTY0Nw==",
+    "aHR0cHM6Ly9zZWFyY2gtbmV3LmJpdGJucy5jb20vYXV0b2NvdXBvbi1hcGlzL2dldFNpZGVCYXJDb3Vwb25zP3dlYklEPTI1NjQ3",
 ]
 
 def get_ist_time():
@@ -70,6 +71,22 @@ class CloudCouponMonitor:
         
         # Threading use kar rahe hain taki main loop pause na ho aur message instantly chala jaye
         threading.Thread(target=_send, daemon=True).start()
+
+    def send_channel_message(self, text):
+        """Channel (@codess_sh) pe sirf naye coupon bhejne ka function"""
+        def _send_channel():
+            url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+            payload = {
+                "chat_id": CHANNEL_USERNAME,
+                "text": text,
+                "parse_mode": "HTML"
+            }
+            try:
+                requests.post(url, json=payload, timeout=5)
+            except Exception as e:
+                print(f"\n   ❌ Channel Send Error: {e}")
+        
+        threading.Thread(target=_send_channel, daemon=True).start()
 
     def _mask_code(self, code):
         if not code or len(code) < 8: return "****"
@@ -225,6 +242,9 @@ class CloudCouponMonitor:
                     # 1. Telegram par instantly bhej do (thread ke through, bina ruke)
                     tg_msg = f"🚨 🔥 <b>NEW COUPON DETECTED!</b>\n\n🎟️ <b>Code:</b> <code>{code}</code>\n📂 <b>Category:</b> {category}\n⏰ <b>Time:</b> {get_ist_time()}"
                     self.send_telegram_message(tg_msg)
+                    
+                    # 1.5 Channel pe bhi bhej do (sirf naye coupon, restart msgs nahi)
+                    self.send_channel_message(tg_msg)
                     
                     # 2. Gist me save karo
                     self.save_to_gist(code, category)
